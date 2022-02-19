@@ -8,15 +8,11 @@ import (
 )
 
 func main() {
-	loc := location()
+	var lol map[string]interface{}
 
-	fmt.Println(loc)
+	json.Unmarshal([]byte(loc), &lol)
 
-	
-
-	json.Unmarshal([]byte(loc), &resp)
-
-	fmt.Println(resp)
+	fmt.Println(lol["lat"].(map[string]interface{}))
 
 	req, err := http.Get("https://api.openweathermap.org/data/2.5/weather?lat=53.480759&lon=-2.242631&appid=5e59c3037bf76fb39a38b0257d2dfbad")
 	if err != nil {
