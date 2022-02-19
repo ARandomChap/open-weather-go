@@ -2,19 +2,44 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 func main() {
-	var lol map[string]interface{}
+	apiKey := flag.String("api-key", "", "The open-weather API Key")
+	zip := flag.String("zip", "", "The first part of you zip code, e.g. ('WF9')")
+	countryCode := flag.String("country-code", "", "The country code related to your zip code, e.g ('GB, US, ...')")
 
-	json.Unmarshal([]byte(loc), &lol)
+	flag.Parse()
 
-	fmt.Println(lol["lat"].(map[string]interface{}))
+	if *apiKey == "" {
+		log.Fatalln("api-key was not set")
+	}
+	if *zip == "" {
+		log.Fatalln("zip was not set")
+	}
+	if *countryCode == "" {
+		log.Fatalln("country-code was not set")
+	}
 
-	req, err := http.Get("https://api.openweathermap.org/data/2.5/weather?lat=53.480759&lon=-2.242631&appid=5e59c3037bf76fb39a38b0257d2dfbad")
+	resp := weather(*apiKey, *zip, *countryCode)
+
+	fmt.Println(resp)
+}
+
+func weather(apiKey string, zip string, countryCode string) string {
+	var coords map[string]interface{}
+	loc := location(apiKey, zip, countryCode)
+
+	json.Unmarshal([]byte(loc), &coords)
+	lat := fmt.Sprint(coords["lat"])
+	lon := fmt.Sprint(coords["lon"])
+
+	req, err := http.Get("https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" + apiKey)
 	if err != nil {
 		fmt.Printf("err: %v", err.Error())
 	}
@@ -24,12 +49,12 @@ func main() {
 		fmt.Printf("err: %v", err.Error())
 	}
 
-	fmt.Println(string(body))
+	return string(body)
 }
 
 // Get preferred outbound ip of this machine
-func location() string {
-	loc, err := http.Get("http://api.openweathermap.org/geo/1.0/zip?zip=WF9,GB&appid=5e59c3037bf76fb39a38b0257d2dfbad")
+func location(apikey string, zip string, countryCode string) string {
+	loc, err := http.Get("http://api.openweathermap.org/geo/1.0/zip?zip=" + zip + "," + countryCode + "&appid=" + apikey)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -38,6 +63,6 @@ func location() string {
 	if err != nil {
 		fmt.Printf("err: %v", err.Error())
 	}
-	
+
 	return string(body)
 }
