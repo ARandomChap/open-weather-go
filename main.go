@@ -49,7 +49,12 @@ func weather(apiKey string, zip string, countryCode string) string {
 		fmt.Printf("err: %v", err.Error())
 	}
 
-	return string(body)
+	var weather map[string]interface{}
+	json.Unmarshal(body, &weather)
+
+	main := fmt.Sprint(weather["weather"])
+
+	return main
 }
 
 // Get preferred outbound ip of this machine
